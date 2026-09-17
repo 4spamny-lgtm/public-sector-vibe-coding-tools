@@ -38,7 +38,7 @@
 #orgNotice{background:#eef3fb;border-bottom:1px solid #c9d8ee;color:#22456f;
  padding:9px 16px;font-size:13px;text-align:center;line-height:1.6}
 
-#gate[hidden],#gateOpts[hidden],#gateSetup[hidden],#newCommitteeModal[hidden],
+#gate .opt[hidden],#gate[hidden],#gateOpts[hidden],#gateSetup[hidden],#newCommitteeModal[hidden],
 #orgNotice[hidden],#demoNotice[hidden]{display:none!important}
 .gate-blank{background:#f7f9fc;border:1px dashed #c6d0de;border-radius:13px;padding:26px 20px;
  color:#667085;line-height:1.8;font-size:13.5px;text-align:center}
@@ -387,6 +387,9 @@ function saveNewCommittee(){
    입력한 내용은 이 브라우저에만 저장되며, 서버로 전송되지 않습니다.</p>
 
   <div class="opts" id="gateOpts">
+    <button class="opt" data-mode="resume" id="optResume" hidden><div class="ic">▶</div>
+      <b>이어서 작업하기</b>
+      <span>이 브라우저에 저장해 둔 위원회 데이터를 그대로 이어서 봅니다.</span></button>
     <button class="opt" data-mode="demo"><div class="ic">▦</div>
       <b>데모 둘러보기</b>
       <span>가상 위원회 20개가 채워진 상태로 기능을 살펴봅니다. 어떤 화면인지 먼저 보고 싶을 때.</span></button>
@@ -429,12 +432,26 @@ function saveNewCommittee(){
     document.getElementById('gateSetup').hidden=true;
     document.getElementById('gateOpts').hidden=false;}
 
-  if(!getMode()) showGate();
+  var GO='gateGo_v1';
+  var passed=false;
+  try{ passed=!!sessionStorage.getItem(GO); if(passed) sessionStorage.removeItem(GO); }catch(e){}
+  function go(){ try{sessionStorage.setItem(GO,'1');}catch(e){} location.reload(); }
+
+  // 실제로 작업하던 상태(빈 상태·불러오기)일 때만 '이어서 작업하기'를 보여준다
+  (function(){
+    var prev=getMode();
+    if(prev==='blank'||prev==='load'){
+      var r=document.getElementById('optResume'); if(r) r.hidden=false;
+    }
+  })();
+
+  if(!passed) showGate();
 
   document.getElementById('gateOpts').addEventListener('click',function(e){
     var b=e.target.closest('[data-mode]'); if(!b) return;
     var m=b.dataset.mode;
-    if(m==='demo'){ wipe(); setMode('demo'); location.reload(); }
+    if(m==='resume'){ gate.hidden=true; return; }
+    if(m==='demo'){ wipe(); setMode('demo'); go(); }
     else if(m==='blank'){
       document.getElementById('gateOpts').hidden=true;
       document.getElementById('gateSetup').hidden=false;
@@ -449,7 +466,7 @@ function saveNewCommittee(){
     var dept=(document.getElementById('gDept').value||'').trim();
     wipe();
     try{localStorage.setItem(ORG_KEY,JSON.stringify({기관명:org,부서:dept}));}catch(e){}
-    setMode('blank'); location.reload();
+    setMode('blank'); go();
   };
 
   document.getElementById('gateFile').onchange=function(e){
@@ -461,7 +478,7 @@ function saveNewCommittee(){
         if(!raw||!Array.isArray(raw.committees))
           throw new Error('이 도구에서 백업한 JSON이 아닙니다.');
         localStorage.setItem(DATA_KEY,JSON.stringify(raw));
-        setMode('load'); location.reload();
+        setMode('load'); go();
       }catch(err){ alert('불러오지 못했습니다.\n'+err.message); }
     };
     fr.readAsText(f);

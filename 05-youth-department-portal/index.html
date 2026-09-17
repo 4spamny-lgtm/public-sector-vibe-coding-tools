@@ -3,7 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OO과 통합현황</title><script>window.PORTAL_MODE=(function(){try{return localStorage.getItem("portalMode_v1")||"demo";}catch(e){return "demo";}})();</script>
+<title>OO과 통합현황</title>
+<style id="navFixStyle">
+/* 사업현황 드롭다운 */
+.navwrap{position:relative;display:inline-block}
+#bizDD{position:fixed;z-index:1200;min-width:196px;
+ background:#fff;border:1px solid #dbe3ee;border-radius:12px;padding:6px;
+ box-shadow:0 12px 30px rgba(15,30,55,.16)}
+#bizDD[hidden]{display:none!important}
+#bizDD button{display:block;width:100%;text-align:left;background:none;border:0;
+ padding:9px 12px;border-radius:8px;font:inherit;font-size:13.5px;color:#24324a;cursor:pointer;white-space:nowrap}
+#bizDD button:hover{background:#f1f5fb}
+#bizDD button.on{background:#eef0fb;color:#4a3ba8;font-weight:800}
+#bizDD .ddnote{border-top:1px solid #eef1f6;margin-top:5px;padding:8px 12px 4px;
+ color:#8a93a3;font-size:11.5px;line-height:1.6}
+.caret{font-size:10px;opacity:.7;margin-left:3px}
+
+/* 사업현황 화면에서는 바깥 스크롤을 없애고 대시보드만 스크롤한다 */
+body.bizfull{overflow:hidden}
+body.bizfull .wrap{padding-bottom:0}
+#s-business{margin:0}
+</style>
+<script>window.PORTAL_MODE=(function(){try{return localStorage.getItem("portalMode_v1")||"demo";}catch(e){return "demo";}})();</script>
 <style id="gateStyle">
 #gate{position:fixed;inset:0;z-index:99999;background:#f4f7fb;overflow:auto;
  display:flex;align-items:center;justify-content:center;padding:28px 18px;
@@ -36,7 +57,7 @@
  color:#7a4f10;font-size:12px;font-weight:700;cursor:pointer;
  box-shadow:0 3px 12px rgba(0,0,0,.12);font-family:inherit}
 
-#gate[hidden],#gateOpts[hidden],#gateSetup[hidden],#newCommitteeModal[hidden],
+#gate .opt[hidden],#gate[hidden],#gateOpts[hidden],#gateSetup[hidden],#newCommitteeModal[hidden],
 #orgNotice[hidden],#demoNotice[hidden]{display:none!important}
 .blank-hint{background:#f7f9fc;border:1px dashed #c6d0de;border-radius:13px;padding:22px;
  color:#667085;line-height:1.75;font-size:13.5px;text-align:center}
@@ -1522,6 +1543,9 @@ renderHome();renderCommittees();renderFacilities();renderOrdinances();
    입력한 내용은 이 브라우저에만 저장되며, 서버로 전송되지 않습니다.</p>
 
   <div class="opts" id="gateOpts">
+    <button class="opt" data-mode="resume" id="optResume" hidden><div class="ic">▶</div>
+      <b>이어서 작업하기</b>
+      <span>이 브라우저에 저장해 둔 내용을 그대로 이어서 봅니다.</span></button>
     <button class="opt" data-mode="demo"><div class="ic">▦</div>
       <b>데모 둘러보기</b>
       <span>가상 데이터가 채워진 상태로 기능을 살펴봅니다. 어떤 화면인지 먼저 보고 싶을 때.</span></button>
@@ -1566,12 +1590,26 @@ renderHome();renderCommittees();renderFacilities();renderOrdinances();
   function reset(){ try{localStorage.removeItem(DATA_KEY);localStorage.removeItem(ORG_KEY);}catch(e){} }
 
   // 모드가 정해지지 않았으면 진입 화면을 띄운다
-  if(!getMode()) showGate();
+  var GO='gateGo_v1';
+  var passed=false;
+  try{ passed=!!sessionStorage.getItem(GO); if(passed) sessionStorage.removeItem(GO); }catch(e){}
+  function go(){ try{sessionStorage.setItem(GO,'1');}catch(e){} location.reload(); }
+
+  // 실제로 작업하던 상태(빈 상태·불러오기)일 때만 '이어서 작업하기'를 보여준다
+  (function(){
+    var prev=getMode();
+    if(prev==='blank'||prev==='load'){
+      var r=document.getElementById('optResume'); if(r) r.hidden=false;
+    }
+  })();
+
+  if(!passed) showGate();
 
   document.getElementById('gateOpts').addEventListener('click',function(e){
     var b=e.target.closest('[data-mode]'); if(!b) return;
     var m=b.dataset.mode;
-    if(m==='demo'){ reset(); setMode('demo'); location.reload(); }
+    if(m==='resume'){ gate.hidden=true; return; }
+    if(m==='demo'){ reset(); setMode('demo'); go(); }
     else if(m==='blank'){
       document.getElementById('gateOpts').hidden=true;
       document.getElementById('gateSetup').hidden=false;
@@ -1588,7 +1626,7 @@ renderHome();renderCommittees();renderFacilities();renderOrdinances();
       .map(function(t){return t.trim();}).filter(Boolean);
     reset();
     try{localStorage.setItem(ORG_KEY,JSON.stringify({부서명:dept,팀:teams}));}catch(e){}
-    setMode('blank'); location.reload();
+    setMode('blank'); go();
   };
 
   document.getElementById('gateFile').onchange=function(e){
@@ -1600,7 +1638,7 @@ renderHome();renderCommittees();renderFacilities();renderOrdinances();
         if(!raw.committees||!raw.facilities||!raw.ordinances)
           throw new Error('이 도구에서 내보낸 JSON이 아닙니다.');
         localStorage.setItem(DATA_KEY,JSON.stringify(raw));
-        setMode('load'); location.reload();
+        setMode('load'); go();
       }catch(err){ alert('불러오지 못했습니다.\n'+err.message); }
     };
     fr.readAsText(f);
@@ -1654,6 +1692,112 @@ renderHome();renderCommittees();renderFacilities();renderOrdinances();
       sec.insertBefore(note, sec.firstChild);
     }
   }
+})();
+</script>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav');
+  if(!nav) return;
+
+  var bizBtn=nav.querySelector('button[data-section="business"]');
+  var ordBtn=nav.querySelector('button[data-section="ordinances"]');
+  var subnav=document.getElementById('subnav');
+  if(!bizBtn||!subnav) return;
+
+  /* ---------- 1. 사업현황 세부메뉴를 드롭다운으로 ---------- */
+  subnav.hidden=true; subnav.style.display='none';
+
+  var wrap=document.createElement('span'); wrap.className='navwrap';
+  bizBtn.parentNode.insertBefore(wrap,bizBtn); wrap.appendChild(bizBtn);
+  bizBtn.innerHTML='▤ 사업현황<span class="caret">▾</span>';
+
+  var ITEMS=[['home','⌂ 홈'],['cmp','▤ 사업 총괄'],['fund','◆ 육성기금'],['verify','✓ 검증']];
+  var dd=document.createElement('div'); dd.id='bizDD'; dd.hidden=true;
+  ITEMS.forEach(function(it){
+    var b=document.createElement('button');
+    b.dataset.biz=it[0]; b.textContent=it[1];
+    dd.appendChild(b);
+  });
+  var note=document.createElement('div'); note.className='ddnote';
+  note.innerHTML='세출예산 사업명세서 · 주요업무현황<br>2024 · 2025 · 2026 (26년 추경 진행 중)';
+  dd.appendChild(note);
+  document.body.appendChild(dd);
+  function placeDD(){
+    var r=bizBtn.getBoundingClientRect();
+    dd.style.left=Math.round(r.left)+'px';
+    dd.style.top=Math.round(r.bottom+6)+'px';
+  }
+
+  function bizGo(p){
+    try{ document.getElementById('bizFrame').contentWindow.go(p); }catch(e){}
+    markDD(p);
+  }
+  function markDD(p){
+    [].forEach.call(dd.querySelectorAll('button'),function(b){
+      b.classList.toggle('on',b.dataset.biz===p);
+    });
+  }
+  dd.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-biz]'); if(!b) return;
+    e.stopPropagation();
+    if(typeof setActive==='function') setActive('business');
+    bizGo(b.dataset.biz);
+    dd.hidden=true;
+  });
+
+  /* 사업현황 버튼: 섹션 전환 + 드롭다운 토글 */
+  bizBtn.addEventListener('click',function(){
+    var show=dd.hidden;
+    if(show) placeDD();
+    dd.hidden=!show;
+  });
+  document.addEventListener('click',function(e){
+    if(!wrap.contains(e.target) && !dd.contains(e.target)) dd.hidden=true;
+  });
+  window.addEventListener('resize',function(){ if(!dd.hidden) placeDD(); });
+
+  /* ---------- 2. 참고자료를 조례 옆 별도 메뉴로 ---------- */
+  var refBtn=document.createElement('button');
+  refBtn.textContent='▣ 참고자료';
+  refBtn.id='navRef';
+  if(ordBtn&&ordBtn.parentNode) ordBtn.parentNode.insertBefore(refBtn,ordBtn.nextSibling);
+  else nav.appendChild(refBtn);
+
+  refBtn.addEventListener('click',function(e){
+    e.stopPropagation();
+    dd.hidden=true;
+    if(typeof setActive==='function') setActive('business');
+    bizGo('ref');
+    [].forEach.call(nav.querySelectorAll('button'),function(b){b.classList.remove('on');});
+    refBtn.classList.add('on');
+  });
+  /* 다른 메뉴를 누르면 참고자료 강조 해제 */
+  nav.addEventListener('click',function(e){
+    var b=e.target.closest('button');
+    if(b&&b!==refBtn) refBtn.classList.remove('on');
+  },true);
+
+  /* ---------- 3. 스크롤 하나로 ---------- */
+  function fitBiz(){
+    var f=document.getElementById('bizFrame'),
+        sec=document.getElementById('s-business');
+    if(!f||!sec) return;
+    if(sec.hidden){ document.body.classList.remove('bizfull'); f.style.height=''; return; }
+    document.body.classList.add('bizfull');
+    var top=f.getBoundingClientRect().top;
+    f.style.height=Math.max(420,(window.innerHeight-top-12))+'px';
+  }
+  window.addEventListener('resize',fitBiz);
+
+  if(typeof setActive==='function'){
+    var orig=setActive;
+    setActive=function(s){ orig(s); if(s!=='business') dd.hidden=true; setTimeout(fitBiz,0); };
+  }
+  var fr=document.getElementById('bizFrame');
+  if(fr) fr.addEventListener('load',function(){ setTimeout(fitBiz,0); });
+  setTimeout(fitBiz,0);
+  markDD('home');
 })();
 </script>
 </body></html>
