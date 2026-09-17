@@ -1,0 +1,15 @@
+PDF CONVERTER FIXED V2
+
+Use:
+    BUILD_EXE_SAFE.cmd
+
+Fixes included:
+1. Batch file encoding issue removed.
+2. No Korean text inside the build script.
+3. No caret (^) line continuations.
+4. Compiler command is a single line.
+5. Thread constructor is explicitly ThreadStart for older .NET Framework C# compilers.
+6. Output EXE uses an English filename to avoid command-line encoding issues.
+
+Expected output:
+    dist\HancomPdfBatch.exe

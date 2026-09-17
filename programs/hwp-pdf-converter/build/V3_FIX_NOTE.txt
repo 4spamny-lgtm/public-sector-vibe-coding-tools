@@ -1,0 +1,11 @@
+PDF CONVERTER FIXED V3
+
+Use:
+    BUILD_EXE_SAFE.cmd
+
+Fix:
+- C# 7 inline out variable removed.
+- Compatible with older .NET Framework C# compiler syntax.
+
+Expected output:
+    dist\HancomPdfBatch.exe

@@ -1,0 +1,9 @@
+IMPORTANT - USE BUILD_EXE_SAFE.cmd
+
+The previous BUILD_EXE.bat may break on some Windows systems because of
+batch-file encoding and line-continuation issues.
+
+Use this file instead:
+    BUILD_EXE_SAFE.cmd
+
+It uses ASCII only and a single-line compiler command.

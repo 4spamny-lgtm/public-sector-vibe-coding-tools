@@ -1,0 +1,14 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>한글문서 병합 프로그램</title><style>:root{--bg:#f4f7fb;--card:#fff;--ink:#172238;--muted:#667085;--line:#e1e7f0;--purple:#6d4fc2;--blue:#205b9c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif}
+.top{background:linear-gradient(135deg,#33265e,#6d4fc2);color:#fff;padding:44px 22px}.inner{max-width:920px;margin:auto}.top a{color:#fff;text-decoration:none;opacity:.85}.top h1{margin:16px 0 8px;font-size:34px}.top p{margin:0;line-height:1.7;opacity:.88}
+main{max-width:920px;margin:auto;padding:26px 22px 60px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 7px 24px rgba(20,40,80,.05)}
+h2{font-size:20px;margin:0 0 12px}ul{line-height:1.9;margin:0;padding-left:22px}.muted{color:var(--muted);line-height:1.7}
+.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.btn{display:inline-block;text-decoration:none;border-radius:10px;padding:10px 15px;font-weight:800;background:var(--purple);color:#fff}.btn.secondary{background:#fff;color:var(--blue);border:1px solid #b9c9dc}.tag{display:inline-block;background:#f1edfb;color:var(--purple);border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800;margin-right:5px}
+.note{background:#fff8e8;border:1px solid #ecd99e;border-radius:12px;padding:13px 15px;color:#67501d;font-size:13px;line-height:1.7}</style></head>
+<body><header class="top"><div class="inner"><a href="../../">← 도구 갤러리</a><h1>한글문서 병합 프로그램</h1><p>여러 HWP/HWPX 문서를 원하는 순서대로 하나의 문서로 취합하는 Windows 프로그램입니다.</p></div></header>
+<main>
+<div class="card"><span class="tag">Windows EXE</span><span class="tag">C# WinForms</span><span class="tag">한컴오피스 필요</span><div class="buttons"><a class="btn" href="download/hwp-document-merger.zip" download>프로그램 ZIP 다운로드</a><a class="btn secondary" href="download/HwpDocumentMerger.exe" download>EXE 바로 받기</a></div></div>
+<div class="card"><h2>주요 기능</h2><ul><li>HWP/HWPX 파일·폴더 드래그앤드롭</li><li>여러 폴더의 문서 함께 추가 및 중복 제거</li><li>목록 순서 또는 파일명 자연정렬</li><li>▲/▼ 버튼으로 취합 순서 조정</li><li>파일별 성공·실패 로그 및 오류 파일 건너뛰기</li><li>결과 HWPX 저장 폴더 지정</li></ul></div>
+<div class="card"><h2>사용 환경</h2><p class="muted">Windows와 데스크톱 한컴오피스 한글이 필요하며, HWPFrame.HwpObject 자동화가 가능한 환경에서 동작합니다.</p><div class="note">서명되지 않은 EXE는 Windows SmartScreen 경고가 나타날 수 있습니다. 조직 내 배포 전에는 코드서명과 사내 보안정책을 확인하세요.</div></div>
+<div class="card"><h2>공동 개발</h2><p class="muted">실행파일뿐 아니라 C# 원본과 빌드 파일도 저장소에 포함했습니다.</p><div class="buttons"><a class="btn secondary" href="src/HwpMergeDragDrop.cs">C# 소스 보기</a><a class="btn secondary" href="README.md">README 보기</a></div></div>
+</main></body></html>

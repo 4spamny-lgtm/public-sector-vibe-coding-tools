@@ -1,0 +1,12 @@
+V2 FIX
+
+Fixed C# compiler error CS0121 at the Thread constructor.
+
+Before:
+    new Thread(delegate { ... })
+
+After:
+    new Thread(new ThreadStart(delegate { ... }))
+
+Build:
+    Double-click BUILD_EXE_SAFE.cmd
