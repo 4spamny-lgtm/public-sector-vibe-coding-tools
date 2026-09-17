@@ -3,7 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>위원회 통합 운영관리 · 데모</title>
+<title>위원회 통합 운영관리 · 데모</title><script>window.COMMITTEE_MODE=(function(){try{return localStorage.getItem("committeeMode_v1")||"demo";}catch(e){return "demo";}})();</script>
+<style id="gateStyle">
+#gate{position:fixed;inset:0;z-index:99999;background:#f4f7fb;overflow:auto;
+ display:flex;align-items:center;justify-content:center;padding:28px 18px;
+ font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;color:#172238}
+#gate .wrap{max-width:860px;width:100%}
+#gate h1{font-size:27px;margin:0 0 9px;letter-spacing:-.4px}
+#gate .sub{color:#667085;line-height:1.7;margin:0 0 24px;font-size:14px}
+#gate .opts{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
+#gate .opt{background:#fff;border:1px solid #e1e7f0;border-radius:15px;padding:20px 19px;
+ text-align:left;cursor:pointer;box-shadow:0 6px 20px rgba(20,40,80,.05);
+ transition:border-color .12s,transform .12s;font:inherit;color:inherit}
+#gate .opt:hover{border-color:#2f6fd0;transform:translateY(-2px)}
+#gate .opt .ic{font-size:21px;margin-bottom:9px}
+#gate .opt b{display:block;font-size:16px;margin-bottom:6px}
+#gate .opt span{color:#667085;font-size:13px;line-height:1.65;display:block}
+#gate .foot{margin-top:22px;color:#8a93a3;font-size:12.5px;line-height:1.7}
+#gate .badge{display:inline-block;background:#e8f0fb;color:#2f6fd0;border-radius:999px;
+ padding:3px 10px;font-size:11.5px;font-weight:800;margin-bottom:14px}
+#gate .setup{background:#fff;border:1px solid #e1e7f0;border-radius:15px;padding:22px;margin-top:6px}
+#gate .setup label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}
+#gate .setup input{width:100%;padding:10px 12px;border:1px solid #cfd7e3;border-radius:9px;
+ font:inherit;font-size:14px}
+#gate .setup .hint{color:#8a93a3;font-size:12px;margin-top:5px;line-height:1.6}
+#gate .row{display:flex;gap:9px;margin-top:18px;flex-wrap:wrap}
+#gate .btn{border:0;border-radius:10px;padding:11px 17px;font:inherit;font-weight:800;
+ font-size:14px;cursor:pointer;background:#2f6fd0;color:#fff}
+#gate .btn.ghost{background:#fff;color:#205b9c;border:1px solid #b9c9dc}
+#modeBar{position:fixed;right:14px;bottom:14px;z-index:9998;display:flex;gap:7px}
+#modeBar button{padding:8px 13px;border:1px solid #d7c39a;border-radius:9px;background:#fff8e8;
+ color:#7a4f10;font-size:12px;font-weight:700;cursor:pointer;
+ box-shadow:0 3px 12px rgba(0,0,0,.12);font-family:inherit}
+#orgNotice{background:#eef3fb;border-bottom:1px solid #c9d8ee;color:#22456f;
+ padding:9px 16px;font-size:13px;text-align:center;line-height:1.6}
+.gate-blank{background:#f7f9fc;border:1px dashed #c6d0de;border-radius:13px;padding:26px 20px;
+ color:#667085;line-height:1.8;font-size:13.5px;text-align:center}
+</style>
+
 <style>
 :root{
   --navy:#16324f;--navy2:#244a70;--blue:#3b82f6;--sky:#eaf3fb;--bg:#f5f7fa;
@@ -50,7 +87,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{min-height:
       </section>
 
       <section class="page" id="page-committees">
-        <div class="page-head"><div class="page-title"><h2>위원회 현황</h2><p>위원회를 선택하면 동일한 화면 체계에서 개별위원회 관리로 진입합니다.</p></div><div class="filters"><input class="control search" id="committeeSearch" placeholder="위원회명, 실국, 부서, 설치목적 검색"><select class="control" id="committeeRiskFilter"><option value="">점검 신호 전체</option><option value="has">점검 있음</option><option value="none">점검 없음</option></select><button class="control btn-primary" onclick="exportCommitteesCsv()">CSV 내보내기</button></div></div>
+        <div class="page-head"><div class="page-title"><h2>위원회 현황</h2><p>위원회를 선택하면 동일한 화면 체계에서 개별위원회 관리로 진입합니다.</p></div><div class="filters"><input class="control search" id="committeeSearch" placeholder="위원회명, 실국, 부서, 설치목적 검색"><select class="control" id="committeeRiskFilter"><option value="">점검 신호 전체</option><option value="has">점검 있음</option><option value="none">점검 없음</option></select><button class="control btn-primary" onclick="openCommitteeModal()" style="margin-right:6px">+ 위원회 추가</button><button class="control btn-primary" onclick="exportCommitteesCsv()">CSV 내보내기</button></div></div>
         <div class="filter-summary" id="committeeSummary"></div><div class="card panel"><div class="panel-head"><h3>위원회 목록</h3><small id="committeeCount"></small></div><div class="table-wrap"><table class="table"><thead><tr><th>실국</th><th>부서</th><th>위원회명</th><th>설치목적</th><th>구분</th><th>위원</th><th>2026 회의</th><th>점검 신호</th><th>관리</th></tr></thead><tbody id="committeeRows"></tbody></table></div></div>
       </section>
 
@@ -181,14 +218,15 @@ function makeMeeting(ci,j,date,total,name,publicValue){
  const attended=Math.max(5,total-(1+((ci+j)%3))); const modes=['대면','서면','영상'];
  return {id:`mt_${ci}_${j}`,date,round:`제${j<10?j+1:j-8}차`,type:j%2?'수시':'정기',mode:modes[(ci+j)%3],attended,total,place:(j%3===0?'OO도청 회의실':j%3===1?'온라인 영상회의':'도민회의실'),result:['원안 의결','수정 의결','의견수렴 후 후속 검토'][(ci+j)%3],agendas:[{id:`a_${ci}_${j}_1`,kind:j%2?'보고':'심의',title:`${name.replace('OO도 ','').replace('위원회','')} 주요 안건 ${j<10?j+1:j-8}`,keywords:'정책|운영'}],minute:{title:`${j<10?j+1:j-8}차 회의록`,public:publicValue,speakers:'위원장 외 참석위원',body:'주요 안건에 대한 의견을 공유하고 후속 조치 방향을 논의하였다.'},expense:{honorarium:attended*120000,review:(j%2)*240000,steno:j%3===0?180000:0,other:60000*((ci+j)%2)}}
 }
-function loadState(){try{const raw=localStorage.getItem(STORE_KEY);state=raw?JSON.parse(raw):generateDemoState()}catch(e){state=generateDemoState()} saveState(false)}
+function blankState(){return {version:1,demo:false,updatedAt:new Date().toISOString(),committees:[]};}
+function loadState(){const blank=window.COMMITTEE_MODE==='blank';try{const raw=localStorage.getItem(STORE_KEY);state=raw?JSON.parse(raw):(blank?blankState():generateDemoState())}catch(e){state=blank?blankState():generateDemoState()} saveState(false)}
 function saveState(render=true){state.updatedAt=new Date().toISOString();try{localStorage.setItem(STORE_KEY,JSON.stringify(state));$('saveIndicator').textContent='● LOCAL 저장'}catch(e){$('saveIndicator').textContent='● 임시 저장'}if(render)renderAll()}
 function currentCommittee(){return state.committees.find(c=>c.id===currentCommitteeId)}
 function allMembers(){return state.committees.flatMap(c=>c.members.map(m=>({...m,committeeId:c.id,committeeName:c.name,bureau:c.bureau,dept:c.dept})))}
 function allMeetings(){return state.committees.flatMap(c=>c.meetings.map(m=>({...m,committeeId:c.id,committeeName:c.name,bureau:c.bureau,dept:c.dept})))}
 
 function kpi(label,value,sub,icon='•'){return `<div class="card kpi"><div class="mini-icon">${icon}</div><div class="label">${esc(label)}</div><div class="value">${value}</div><div class="sub">${esc(sub||'')}</div></div>`}
-function bars(el,items){const max=Math.max(1,...items.map(x=>x[1]));el.innerHTML=items.map(([l,v,s])=>`<div class="barline"><span>${esc(l)}</span><div class="bar"><i style="width:${Math.max(3,v/max*100)}%"></i></div><b>${s??fmt(v)}</b></div>`).join('')||'<div class="empty-state">표시할 데이터가 없습니다.</div>'}
+function bars(el,items){const max=Math.max(1,...items.map(x=>x[1]));el.innerHTML=items.map(([l,v,s])=>`<div class="barline"><span>${esc(l)}</span><div class="bar"><i style="width:${Math.max(3,v/max*100)}%"></i></div><b>${s??fmt(v)}</b></div>`).join('')||(state.committees.length?'<div class="empty-state">표시할 데이터가 없습니다.</div>':'<div class="empty-state gate-blank">아직 등록된 위원회가 없습니다.<br><b>위원회 현황</b> 화면에서 위원회를 먼저 등록하세요.</div>')}
 function goMain(page){currentMainPage=page;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));document.querySelectorAll('#mainTabs .tab').forEach(x=>x.classList.toggle('active',x.dataset.page===page));window.scrollTo({top:0});renderAll()}
 function enterCommittee(id,tab='dashboard'){currentCommitteeId=id;$('overallShell').classList.add('hidden');$('committeeShell').classList.add('active');goCommitteeTab(tab);renderCommitteeHeader();window.scrollTo({top:0})}
 function leaveCommittee(){$('committeeShell').classList.remove('active');$('overallShell').classList.remove('hidden');currentCommitteeId=null;goMain(currentMainPage)}
@@ -206,7 +244,7 @@ function renderHome(){const cs=state.committees, ms=allMembers().filter(m=>m.sta
 function minutesPublicCountAll(y){return state.committees.reduce((s,c)=>s+minutesPublicCount(c,y),0)}
 function committeeRowMini(c){const app=appointedMembers(c),yr=app.length?youthMembers(c).length/app.length:0,risks=committeeRisks(c);return `<tr class="data-row clickable" onclick="enterCommittee('${c.id}')"><td>${esc(c.bureau)}</td><td class="namecell">${esc(c.name)}</td><td>${c.members.filter(m=>m.status==='재임').length}</td><td>${meetingsIn(c,2026).length}</td><td>${pct(yr)}</td><td><div class="pills">${risks.slice(0,3).map(riskBadge).join('')}${risks.length>3?`<span class="badge b-gray">+${risks.length-3}</span>`:''}</div></td><td><button class="tiny primary" onclick="event.stopPropagation();enterCommittee('${c.id}')">관리</button></td></tr>`}
 
-function renderCommittees(){const q=($('committeeSearch')?.value||'').trim().toLowerCase(),rf=$('committeeRiskFilter')?.value||'';let cs=state.committees.filter(c=>[c.name,c.bureau,c.dept,c.purpose].join(' ').toLowerCase().includes(q));if(rf==='has')cs=cs.filter(c=>committeeRisks(c).length);if(rf==='none')cs=cs.filter(c=>!committeeRisks(c).length);$('committeeSummary').innerHTML=`<span class="filter-chip">${q?'검색: '+esc(q):'전체 위원회'}</span>${rf?`<span class="filter-chip">${rf==='has'?'점검 있음':'점검 없음'}</span>`:''}`;$('committeeCount').textContent=fmt(cs.length)+'개';$('committeeRows').innerHTML=cs.map(c=>{const rs=committeeRisks(c);return `<tr class="data-row clickable" onclick="enterCommittee('${c.id}')"><td>${esc(c.bureau)}</td><td>${esc(c.dept)}</td><td class="namecell">${esc(c.name)}</td><td>${esc(c.purpose)}</td><td><span class="badge ${c.durationType==='상설'?'b-blue':'b-gray'}">${esc(c.durationType)}</span></td><td>${c.members.filter(m=>m.status==='재임').length}</td><td>${meetingsIn(c,2026).length}</td><td><div class="pills">${rs.map(riskBadge).join('')||'<span class="badge b-green">없음</span>'}</div></td><td><button class="tiny primary" onclick="event.stopPropagation();enterCommittee('${c.id}')">개별관리</button></td></tr>`}).join('')}
+function renderCommittees(){const q=($('committeeSearch')?.value||'').trim().toLowerCase(),rf=$('committeeRiskFilter')?.value||'';let cs=state.committees.filter(c=>[c.name,c.bureau,c.dept,c.purpose].join(' ').toLowerCase().includes(q));if(rf==='has')cs=cs.filter(c=>committeeRisks(c).length);if(rf==='none')cs=cs.filter(c=>!committeeRisks(c).length);$('committeeSummary').innerHTML=`<span class="filter-chip">${q?'검색: '+esc(q):'전체 위원회'}</span>${rf?`<span class="filter-chip">${rf==='has'?'점검 있음':'점검 없음'}</span>`:''}`;$('committeeCount').textContent=fmt(cs.length)+'개';if(!state.committees.length){$('committeeRows').innerHTML='<tr><td colspan="9"><div class="gate-blank">아직 등록된 위원회가 없습니다.<br>오른쪽 위 <b>+ 위원회 추가</b> 버튼으로 첫 위원회를 등록하세요.</div></td></tr>';$('committeeSummary').innerHTML='';return;}$('committeeRows').innerHTML=cs.map(c=>{const rs=committeeRisks(c);return `<tr class="data-row clickable" onclick="enterCommittee('${c.id}')"><td>${esc(c.bureau)}</td><td>${esc(c.dept)}</td><td class="namecell">${esc(c.name)}</td><td>${esc(c.purpose)}</td><td><span class="badge ${c.durationType==='상설'?'b-blue':'b-gray'}">${esc(c.durationType)}</span></td><td>${c.members.filter(m=>m.status==='재임').length}</td><td>${meetingsIn(c,2026).length}</td><td><div class="pills">${rs.map(riskBadge).join('')||'<span class="badge b-green">없음</span>'}</div></td><td><button class="tiny primary" onclick="event.stopPropagation();enterCommittee('${c.id}')">개별관리</button></td></tr>`}).join('')}
 function renderAllMembers(){const q=($('allMemberSearch')?.value||'').trim().toLowerCase(),ef=$('expiryFilter')?.value||'';let ms=allMembers().filter(m=>[m.name,m.committeeName,m.affiliation,m.position].join(' ').toLowerCase().includes(q));if(ef==='expired')ms=ms.filter(m=>memberDday(m)<0);else if(ef)ms=ms.filter(m=>memberDday(m)>=0&&memberDday(m)<=+ef);const active=ms.filter(m=>m.status==='재임'),women=active.filter(m=>m.gender==='여'),youth=active.filter(m=>+m.birthYear>=1987),exp90=active.filter(m=>memberDday(m)>=0&&memberDday(m)<=90);$('memberKpis').innerHTML=[kpi('검색 위원',fmt(ms.length)+'명','현재 필터 결과','人'),kpi('재임',fmt(active.length)+'명','현재 기준','●'),kpi('여성',fmt(women.length)+'명',pct(active.length?women.length/active.length:0),'♀'),kpi('청년',fmt(youth.length)+'명','1987년 이후 출생','Y'),kpi('90일 내 만료',fmt(exp90.length)+'명','임기 확인 필요','D')].join('');$('memberCount').textContent=fmt(ms.length)+'명';$('allMemberRows').innerHTML=ms.map(m=>{const d=memberDday(m),dd=d<0?`D+${Math.abs(d)}`:`D-${d}`;return `<tr class="data-row"><td class="namecell">${esc(m.committeeName)}</td><td>${esc(m.name)}</td><td>${m.gender}</td><td>${esc(m.appointType)}</td><td>${esc(m.role)}</td><td>${esc(m.affiliation)} / ${esc(m.position)}</td><td>${m.birthYear}</td><td>${m.termEnd}</td><td><span class="badge ${d<0?'b-gray':d<=30?'b-red':d<=90?'b-orange':'b-green'}">${dd}</span></td><td><button class="tiny primary" onclick="enterCommittee('${m.committeeId}','members')">관리</button></td></tr>`}).join('')}
 function renderAllMeetings(){const q=($('allMeetingSearch')?.value||'').trim().toLowerCase(),year=$('meetingYearFilter')?.value||'2026';let ms=allMeetings().filter(m=>m.date.startsWith(year)&&[m.committeeName,m.bureau,m.dept,m.place,m.agendas.map(a=>a.title).join(' ')].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));const pub=ms.filter(m=>m.minute?.public==='공개').length,att=ms.reduce((s,m)=>s+m.attended,0),tot=ms.reduce((s,m)=>s+m.total,0);$('meetingKpis').innerHTML=[kpi('회의',fmt(ms.length)+'회',year+'년','◷'),kpi('대면',fmt(ms.filter(m=>m.mode==='대면').length)+'회','방식별','P'),kpi('서면/영상',fmt(ms.filter(m=>m.mode!=='대면').length)+'회','방식별','D'),kpi('회의록 공개',pct(ms.length?pub/ms.length:0),`${pub}/${ms.length}건`,'M'),kpi('평균 참석률',pct(tot?att/tot:0),`${att}/${tot}명`,'人')].join('');$('meetingCount').textContent=fmt(ms.length)+'건';$('allMeetingRows').innerHTML=ms.map(m=>`<tr class="data-row"><td>${m.date}</td><td>${esc(m.bureau)} / ${esc(m.dept)}</td><td class="namecell">${esc(m.committeeName)}</td><td><span class="badge b-blue">${esc(m.mode)}</span></td><td>${m.attended}/${m.total}</td><td>${esc(m.place)}</td><td>${esc(m.agendas.map(a=>a.title).join(' · '))}</td><td>${esc(m.result)}</td><td><span class="badge ${m.minute?.public==='공개'?'b-green':'b-orange'}">${esc(m.minute?.public||'미작성')}</span></td><td><button class="tiny primary" onclick="enterCommittee('${m.committeeId}','meetings')">관리</button></td></tr>`).join('')}
 function renderYouth(){const q=($('youthSearch')?.value||'').trim().toLowerCase(),st=$('youthStatus')?.value||'';let rows=state.committees.map(c=>{const app=appointedMembers(c),y=youthMembers(c),r=app.length?y.length/app.length:0;return {c,app:app.length,y:y.length,r}}).filter(x=>[x.c.name,x.c.bureau,x.c.dept].join(' ').toLowerCase().includes(q));if(st==='ok')rows=rows.filter(x=>x.r>=.2);if(st==='check')rows=rows.filter(x=>x.r<.2);const totalApp=rows.reduce((s,x)=>s+x.app,0),totalY=rows.reduce((s,x)=>s+x.y,0),ok=rows.filter(x=>x.r>=.2).length;$('youthKpis').innerHTML=[kpi('검색 위원회',fmt(rows.length)+'개','현재 필터','▦'),kpi('위촉직',fmt(totalApp)+'명','재임 기준','◇'),kpi('청년위원',fmt(totalY)+'명','1987년 이후 출생','Y'),kpi('전체 비율',pct(totalApp?totalY/totalApp:0),'위촉직 대비','%'),kpi('20% 이상',fmt(ok)+'개',`확인 ${rows.length-ok}개`,'✓')].join('');const top=[...rows].sort((a,b)=>b.r-a.r).slice(0,8);bars($('youthBars'),top.map(x=>[x.c.name.replace('OO도 ','').replace('위원회',''),x.r*100,pct(x.r)]));$('youthAlerts').innerHTML=rows.filter(x=>x.r<.2).slice(0,6).map(x=>`<div class="alert orange"><div class="dot"></div><div><strong>${esc(x.c.name)}</strong><p>청년 ${x.y}명 / 위촉직 ${x.app}명</p></div><div class="dday">${pct(x.r)}</div></div>`).join('')||'<div class="empty-state">현재 기준 미만 위원회가 없습니다.</div>';$('youthCount').textContent=fmt(rows.length)+'개';$('youthRows').innerHTML=rows.map(x=>`<tr class="data-row"><td>${esc(x.c.bureau)}</td><td>${esc(x.c.dept)}</td><td class="namecell">${esc(x.c.name)}</td><td>${x.c.members.filter(m=>m.status==='재임').length}</td><td>${x.app}</td><td>${x.y}</td><td>${pct(x.r)}</td><td><span class="badge ${x.r>=.2?'b-green':'b-orange'}">${x.r>=.2?'20% 이상':'확인 필요'}</span></td><td><button class="tiny primary" onclick="enterCommittee('${x.c.id}','members')">관리</button></td></tr>`).join('')}
@@ -253,6 +291,208 @@ function renderAll(){renderHome();renderCommittees();renderAllMembers();renderAl
 
 function bind(){document.querySelectorAll('#mainTabs .tab').forEach(b=>b.onclick=()=>goMain(b.dataset.page));document.querySelectorAll('#committeeTabs .subtab').forEach(b=>b.onclick=()=>goCommitteeTab(b.dataset.ctab));const ids=['committeeSearch','committeeRiskFilter','allMemberSearch','expiryFilter','allMeetingSearch','meetingYearFilter','youthSearch','youthStatus','budgetSearch','budgetYear','budgetStatus','checkSearch','riskType','riskPriority','cMemberSearch','cMemberStatus','cMeetingSearch','cMeetingYear','cMinuteSearch'];for(const id of ids){const el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',()=>{if(id.startsWith('c'))renderCurrentCommittee();else renderAll()})}$('globalSearch').addEventListener('input',renderGlobalSearch);document.addEventListener('click',e=>{if(!$('globalSearchWrap').contains(e.target))$('globalSearchResults').classList.remove('open')});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();$('globalSearchResults').classList.remove('open')}})}
 loadState();bind();renderAll();
+</script>
+
+<div id="newCommitteeModal" hidden style="position:fixed;inset:0;z-index:99998;
+ background:rgba(15,25,45,.42);display:flex;align-items:center;justify-content:center;padding:20px;
+ font-family:system-ui,-apple-system,'Malgun Gothic',sans-serif">
+ <div style="background:#fff;border-radius:16px;padding:24px;max-width:520px;width:100%;
+  max-height:88vh;overflow:auto;box-shadow:0 18px 50px rgba(10,20,40,.28)">
+  <h3 style="margin:0 0 4px;font-size:19px">위원회 추가</h3>
+  <p style="margin:0 0 16px;color:#667085;font-size:13px;line-height:1.6">
+   위원회명만 넣어도 등록됩니다. 나머지는 나중에 채워도 됩니다.</p>
+  <div style="display:grid;gap:11px">
+   <label style="font-size:13px;font-weight:700">위원회명 *
+    <input id="ncName" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit"></label>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+    <label style="font-size:13px;font-weight:700">소관 실·국
+     <input id="ncBureau" placeholder="예: 기획조정실" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit"></label>
+    <label style="font-size:13px;font-weight:700">소관 부서
+     <input id="ncDept" placeholder="예: 자치행정과" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit"></label>
+   </div>
+   <label style="font-size:13px;font-weight:700">설치목적
+    <input id="ncPurpose" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit"></label>
+   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px">
+    <label style="font-size:13px;font-weight:700">설치근거
+     <select id="ncLegal" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit">
+      <option>조례</option><option>법정</option><option>규칙</option><option>기타</option></select></label>
+    <label style="font-size:13px;font-weight:700">존속구분
+     <select id="ncDuration" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit">
+      <option>상설</option><option>비상설</option></select></label>
+    <label style="font-size:13px;font-weight:700">운영형태
+     <select id="ncOperation" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit">
+      <option>수시</option><option>정기</option><option>정기+수시</option></select></label>
+   </div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+    <label style="font-size:13px;font-weight:700">담당자
+     <input id="ncManager" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit"></label>
+    <label style="font-size:13px;font-weight:700">설치일
+     <input id="ncInstall" type="date" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #cfd7e3;border-radius:8px;font:inherit"></label>
+   </div>
+  </div>
+  <div style="display:flex;gap:9px;margin-top:20px;justify-content:flex-end">
+   <button onclick="closeCommitteeModal()" style="padding:10px 16px;border:1px solid #b9c9dc;background:#fff;color:#205b9c;border-radius:9px;font:inherit;font-weight:800;cursor:pointer">취소</button>
+   <button onclick="saveNewCommittee()" style="padding:10px 16px;border:0;background:#2f6fd0;color:#fff;border-radius:9px;font:inherit;font-weight:800;cursor:pointer">등록</button>
+  </div>
+ </div></div>
+
+<script>
+/* 위원회 새로 추가 — 빈 상태에서 시작할 수 있도록 보강한 기능 */
+function openCommitteeModal(){
+  var m=document.getElementById('newCommitteeModal');
+  ['ncBureau','ncDept','ncName','ncPurpose','ncManager','ncInstall'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('ncLegal').value='조례';
+  document.getElementById('ncDuration').value='상설';
+  document.getElementById('ncOperation').value='수시';
+  m.hidden=false;
+  document.getElementById('ncName').focus();
+}
+function closeCommitteeModal(){ document.getElementById('newCommitteeModal').hidden=true; }
+function saveNewCommittee(){
+  var v=function(id){return (document.getElementById(id).value||'').trim();};
+  var name=v('ncName');
+  if(!name){ alert('위원회명을 입력하세요.'); document.getElementById('ncName').focus(); return; }
+  var year=new Date().getFullYear();
+  var c={
+    id:'c_'+Date.now(),
+    bureau:v('ncBureau')||'미지정',
+    dept:v('ncDept')||'미지정',
+    name:name,
+    purpose:v('ncPurpose')||'',
+    manager:v('ncManager')||'',
+    legalType:v('ncLegal'),
+    durationType:v('ncDuration'),
+    operation:v('ncOperation'),
+    installDate:v('ncInstall')||'',
+    members:[], meetings:[],
+    budgets:{}, notes:''
+  };
+  c.budgets[String(year)]={budget:0,spent:0};
+  state.committees.push(c);
+  saveState();
+  closeCommitteeModal();
+  if(typeof enterCommittee==='function') enterCommittee(c.id);
+}
+</script>
+
+<div id="gate" hidden><div class="wrap">
+  <span class="badge">위원회 통합 운영관리</span>
+  <h1>어떻게 시작할까요?</h1>
+  <p class="sub">전체 위원회 총괄 조회와 개별 위원회 운영관리를 한 화면에서 처리합니다.
+   입력한 내용은 이 브라우저에만 저장되며, 서버로 전송되지 않습니다.</p>
+
+  <div class="opts" id="gateOpts">
+    <button class="opt" data-mode="demo"><div class="ic">▦</div>
+      <b>데모 둘러보기</b>
+      <span>가상 위원회 20개가 채워진 상태로 기능을 살펴봅니다. 어떤 화면인지 먼저 보고 싶을 때.</span></button>
+    <button class="opt" data-mode="blank"><div class="ic">◻</div>
+      <b>빈 상태로 시작</b>
+      <span>우리 기관 이름을 넣고 위원회를 하나씩 직접 등록합니다.</span></button>
+    <button class="opt" data-mode="load"><div class="ic">↥</div>
+      <b>저장한 파일 불러오기</b>
+      <span>전에 백업한 JSON 파일을 열어 이어서 작업합니다.</span></button>
+  </div>
+
+  <div class="setup" id="gateSetup" hidden>
+    <b style="font-size:16px">기관 정보를 입력하세요</b>
+    <label for="gOrg">기관명</label>
+    <input id="gOrg" placeholder="예: OO도" autocomplete="off">
+    <label for="gDept">총괄 담당부서</label>
+    <input id="gDept" placeholder="예: 자치행정과" autocomplete="off">
+    <p class="hint">위원회별 소관 국·과는 위원회를 등록할 때 각각 입력합니다.</p>
+    <div class="row">
+      <button class="btn" id="gStart">빈 상태로 시작</button>
+      <button class="btn ghost" id="gBack">뒤로</button>
+    </div>
+  </div>
+
+  <p class="foot">데모 데이터는 기능 시연을 위해 만들어낸 가상 자료입니다. 실재하는 기관·위원회와 무관합니다.<br>
+   한 번 고른 뒤에도 오른쪽 아래 버튼으로 언제든 다시 선택할 수 있습니다.</p>
+</div></div>
+<input type="file" id="gateFile" accept=".json,application/json" hidden>
+
+<script>
+(function(){
+  var MODE_KEY='committeeMode_v1', ORG_KEY='committeeOrg_v1',
+      DATA_KEY='committee_unified_demo_v1';
+  var gate=document.getElementById('gate');
+
+  function getMode(){try{return localStorage.getItem(MODE_KEY)||'';}catch(e){return '';}}
+  function setMode(m){try{localStorage.setItem(MODE_KEY,m);}catch(e){}}
+  function wipe(){try{localStorage.removeItem(DATA_KEY);}catch(e){}}
+  function showGate(){gate.hidden=false;
+    document.getElementById('gateSetup').hidden=true;
+    document.getElementById('gateOpts').hidden=false;}
+
+  if(!getMode()) showGate();
+
+  document.getElementById('gateOpts').addEventListener('click',function(e){
+    var b=e.target.closest('[data-mode]'); if(!b) return;
+    var m=b.dataset.mode;
+    if(m==='demo'){ wipe(); setMode('demo'); location.reload(); }
+    else if(m==='blank'){
+      document.getElementById('gateOpts').hidden=true;
+      document.getElementById('gateSetup').hidden=false;
+      document.getElementById('gOrg').focus();
+    } else { document.getElementById('gateFile').click(); }
+  });
+
+  document.getElementById('gBack').onclick=showGate;
+
+  document.getElementById('gStart').onclick=function(){
+    var org=(document.getElementById('gOrg').value||'').trim()||'우리 기관';
+    var dept=(document.getElementById('gDept').value||'').trim();
+    wipe();
+    try{localStorage.setItem(ORG_KEY,JSON.stringify({기관명:org,부서:dept}));}catch(e){}
+    setMode('blank'); location.reload();
+  };
+
+  document.getElementById('gateFile').onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      try{
+        var raw=JSON.parse(fr.result);
+        if(!raw||!Array.isArray(raw.committees))
+          throw new Error('이 도구에서 백업한 JSON이 아닙니다.');
+        localStorage.setItem(DATA_KEY,JSON.stringify(raw));
+        setMode('load'); location.reload();
+      }catch(err){ alert('불러오지 못했습니다.\n'+err.message); }
+    };
+    fr.readAsText(f);
+  };
+
+  function bar(){
+    if(document.getElementById('modeBar')) return;
+    var d=document.createElement('div'); d.id='modeBar';
+    var b1=document.createElement('button'); b1.textContent='시작화면';
+    b1.title='데모 / 빈 상태 / 불러오기를 다시 고릅니다';
+    b1.onclick=showGate;
+    var b2=document.createElement('button'); b2.textContent='초기화';
+    b2.title='이 브라우저에 저장된 내용을 지웁니다';
+    b2.onclick=function(){
+      if(!confirm('이 브라우저에 저장된 내용을 지우고 처음 상태로 되돌립니다. 계속할까요?'))return;
+      wipe(); try{localStorage.removeItem(MODE_KEY);}catch(e){} location.reload();
+    };
+    d.appendChild(b1); d.appendChild(b2); document.body.appendChild(d);
+
+    // 상단 안내 띠
+    var mode=getMode();
+    if(mode && mode!=='demo'){
+      var org={}; try{org=JSON.parse(localStorage.getItem(ORG_KEY)||'{}');}catch(e){}
+      var n=document.createElement('div'); n.id='orgNotice';
+      n.innerHTML='<b>'+((org.기관명)||'우리 기관')+'</b> 데이터로 작업 중입니다. '+
+        '입력한 내용은 이 브라우저에만 저장됩니다. '+
+        '<b>데이터 관리 → JSON 백업</b>으로 파일에 보관하세요.';
+      document.body.insertBefore(n, document.body.firstChild);
+      var warn=document.querySelector('#page-data .notice.warn');
+      if(warn) warn.hidden=true;
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bar); else bar();
+})();
 </script>
 </body>
 </html>
