@@ -1,0 +1,27 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>시군 취합도구</title><style>:root{--bg:#f4f7fb;--card:#fff;--ink:#172238;--muted:#667085;--line:#e1e7f0;--purple:#6d4fc2;--blue:#205b9c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif}
+.top{background:linear-gradient(135deg,#1f4f3d,#2e8b62);color:#fff;padding:44px 22px}.inner{max-width:920px;margin:auto}.top a{color:#fff;text-decoration:none;opacity:.85}.top h1{margin:16px 0 8px;font-size:34px}.top p{margin:0;line-height:1.7;opacity:.88}
+main{max-width:920px;margin:auto;padding:26px 22px 60px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 7px 24px rgba(20,40,80,.05)}
+h2{font-size:20px;margin:0 0 12px}ul,ol{line-height:1.9;margin:0;padding-left:22px}.muted{color:var(--muted);line-height:1.7}
+.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.btn{display:inline-block;text-decoration:none;border-radius:10px;padding:10px 15px;font-weight:800;background:#2e8b62;color:#fff}.btn.secondary{background:#fff;color:var(--blue);border:1px solid #b9c9dc}.tag{display:inline-block;background:#e6f4ec;color:#1f6b4b;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800;margin-right:5px}
+.note{background:#fff8e8;border:1px solid #ecd99e;border-radius:12px;padding:13px 15px;color:#67501d;font-size:13px;line-height:1.7;margin-top:12px}
+.warn{background:#fdecea;border:1px solid #f0b4ac;border-radius:12px;padding:13px 15px;color:#7a2a1e;font-size:13px;line-height:1.7;margin-top:12px}
+code{background:#f1f4f9;border-radius:6px;padding:2px 6px;font-size:13px}kbd{background:#eef1f6;border:1px solid #cfd7e3;border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:12px}</style></head>
+<body><header class="top"><div class="inner"><a href="../../">← 도구 갤러리</a><h1>시군 취합도구</h1><p>시군별로 제출된 같은 서식의 엑셀 파일을 한 장으로 모읍니다. 셀 위치가 아니라 시군명으로 짝을 맞추기 때문에, 제출자가 다른 시군 행을 지우거나 잘라내도 제자리에 들어갑니다.</p></div></header>
+<main>
+<div class="card"><span class="tag">Excel 매크로</span><span class="tag">VBA</span><span class="tag">Windows Excel</span><div class="buttons"><a class="btn" href="download/form-consolidator.xlsm" download>매크로 파일 다운로드 (.xlsm)</a></div><div class="warn"><b>받은 뒤 설정 세 가지가 필요합니다.</b> 아래 「처음 열었을 때」를 먼저 읽어주세요. 그냥 실행하면 오류가 납니다.</div></div>
+
+<div class="card"><h2>동작 방식</h2><ul><li>배포했던 <b>빈 서식</b>을 기준으로 삼습니다</li><li>빈 서식에서 <code>~시 / ~군 / ~구</code>로 끝나는 값이 가장 많은 열을 시군명 열로 자동 인식합니다</li><li>제출 파일에서 같은 시군명을 찾아 그 행의 값을 옮겨 담습니다</li><li>값이 겹치면 먼저 읽은 값을 남기고, 완료 메시지에 충돌 위치를 알려줍니다</li><li>빈 서식에 원래 값이 있던 칸(제목, 합계 수식 등)은 제출본이 바꿔도 가져오지 않습니다</li><li>결과는 제출 파일 폴더에 <code>취합결과_날짜시간.xlsx</code>로 저장됩니다</li></ul></div>
+
+<div class="card"><h2>사용 순서</h2><ol><li><b>[취합하기]</b> 버튼을 누릅니다</li><li>첫 번째 창에서 시군에 배포했던 <b>빈 서식</b> 파일을 고릅니다</li><li>두 번째 창에서 제출 파일들이 모여 있는 <b>폴더</b>를 고릅니다</li><li>완료 메시지가 뜨면 그 폴더에 결과 파일이 생깁니다</li></ol></div>
+
+<div class="card"><h2>처음 열었을 때</h2>
+<p class="muted"><b>1. 매크로 차단 해제</b><br>노란 띠에 ‘콘텐츠 사용’이 보이면 누릅니다. ‘매크로가 차단되었습니다’가 뜨면 파일 우클릭 → 속성 → 아래쪽 <b>차단 해제</b> 체크 → 확인 후 다시 엽니다.</p>
+<p class="muted"><b>2. 중복 모듈 정리</b><br>현재 파일에는 같은 매크로가 <code>Module1</code>과 <code>취합모듈</code> 두 곳에 들어 있어, 그대로 실행하면 <code>Ambiguous name detected: 취합하기</code> 오류가 납니다. <kbd>Alt</kbd>+<kbd>F11</kbd> → 왼쪽 목록에서 <code>Module1</code> 우클릭 → <b>제거</b> → 내보내기 묻는 창에서 ‘아니요’. <code>취합모듈</code> 하나만 남기면 됩니다.</p>
+<p class="muted"><b>3. 버튼 배치</b><br>시트의 ‘▶ 여기에 [취합하기] 버튼을 만드세요’ 자리에 버튼을 놓습니다. 개발 도구 탭 → 삽입 → 양식 컨트롤 <b>단추</b> → 시트에 그리기 → 매크로 선택 창에서 <code>취합하기</code> 선택.</p>
+<div class="note">버튼을 만들지 않아도 <kbd>Alt</kbd>+<kbd>F8</kbd> → <code>취합하기</code> → 실행으로 바로 쓸 수 있습니다.</div></div>
+
+<div class="card"><h2>주의</h2><ul><li>제출 파일은 빈 서식과 <b>칸 위치가 같아야</b> 합니다. 행이나 열을 끼워 넣거나 지운 파일은 엉뚱한 자리에 들어갈 수 있습니다</li><li>시군명 열을 찾지 못하면(해당 형태의 값이 2개 미만) 실행되지 않습니다</li><li><code>Scripting.Dictionary</code>와 <code>Application.FileDialog</code>를 쓰므로 <b>Windows용 Excel 전용</b>입니다. Mac에서는 동작하지 않습니다</li></ul></div>
+
+<div class="card"><h2>공동 개발</h2><p class="muted">VBA 원본을 함께 공개했습니다. <kbd>Alt</kbd>+<kbd>F11</kbd> → 파일 → 파일 가져오기로 <code>.bas</code>를 넣으면 다른 통합문서에도 붙일 수 있습니다.</p><div class="buttons"><a class="btn secondary" href="src/취합모듈.bas">VBA 소스 보기</a><a class="btn secondary" href="README.md">README 보기</a></div></div>
+</main></body></html>
